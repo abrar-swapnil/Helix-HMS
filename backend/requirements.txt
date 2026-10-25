@@ -1,0 +1,25 @@
+# ---- Web framework ----
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9        # file uploads (medical documents)
+httpx>=0.27,<1                 # talks to Ollama
+python-dotenv>=1.0               # reads backend/.env
+
+# ---- Database ----
+SQLAlchemy>=2.0,<3
+PyMySQL>=1.1,<2                # MySQL driver
+cryptography>=42               # needed by PyMySQL for MySQL 8 auth (caching_sha2_password)
+
+# ---- Security ----
+argon2-cffi>=23.1              # password hashing
+PyJWT>=2.8,<3                  # session tokens
+
+# ---- Misc ----
+tzdata                          # timezone database (required on Windows)
+pypdf>=4.2                      # read text out of uploaded PDF medical records
+
+# ---- Machine learning (priority model) ----
+numpy>=1.26
+# CPU-only build is ~6 MB (the normal wheel drags in ~300 MB of GPU libraries on Linux).
+xgboost-cpu>=3.0,<4; sys_platform != "darwin"
+xgboost>=3.0,<4; sys_platform == "darwin"

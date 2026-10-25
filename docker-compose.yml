@@ -1,0 +1,53 @@
+# Run everything (MySQL + the app) with ONE command:   docker compose up --build
+# then open http://localhost:8000.   Settings come from the file  .env  next to this one (copy .env.docker.example).
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: helix_hms
+      MYSQL_USER: helix
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: mysql+pymysql://helix:${MYSQL_PASSWORD}@db:3306/helix_hms
+      JWT_SECRET: ${JWT_SECRET:-}
+      STAFF_SIGNUP_CODE: ${STAFF_SIGNUP_CODE:-}
+      OTP_MODE: ${OTP_MODE:-demo}
+      HOSPITAL_TIMEZONE: ${HOSPITAL_TIMEZONE:-Asia/Dhaka}
+      EMERGENCY_NUMBER: ${EMERGENCY_NUMBER:-911}
+      # Ollama running on YOUR computer (not in Docker) is reachable through host.docker.internal
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Optional: run Ollama inside Docker too:   docker compose --profile ollama up --build
+  # (then:  docker compose exec ollama ollama pull llama3.2   and set OLLAMA_BASE_URL=http://ollama:11434)
+  ollama:
+    profiles: ["ollama"]
+    image: ollama/ollama
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  dbdata:
+  ollama:

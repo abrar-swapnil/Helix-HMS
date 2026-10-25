@@ -1,0 +1,22 @@
+# Render "Blueprint": New + -> Blueprint -> pick this repository.  (Free web service; you still add DATABASE_URL etc.)
+services:
+  - type: web
+    name: helix-hms
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STAFF_SIGNUP_CODE
+        sync: false            # you type it in the Render dashboard (share it only with your staff / judges)
+      - key: DATABASE_URL
+        sync: false            # mysql+pymysql://USER:PASSWORD@HOST:PORT/DBNAME   (from your hosted MySQL)
+      - key: DB_SSL_CA_PEM
+        sync: false            # the CA certificate text from your MySQL provider (needed by most hosted MySQL)
+      - key: HOSPITAL_TIMEZONE
+        value: Asia/Dhaka
+      - key: OTP_MODE
+        value: demo
